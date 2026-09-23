@@ -88,7 +88,7 @@ O sistema é composto pelas seguintes  camadas principais:
 
 👨‍💻 Autores
 
-Paulo Sérgio Santos de Oliveira e Danilo Santos Costa
+Paulo Sérgio Santos de Oliveira e Danilo Santos Costa.
 
 
 ---

@@ -1,0 +1,152 @@
+/****************************************************************************
+- PROJETOFONO : Feedback Multimodal
+- AUTORES : Danilo Santos Costa e Paulo Sérgio Santos de Oliveira
+- DATA DA ULTIMA MODIFICAÇÃO: 03/11/2026
+- VERSÃO : 2.4 (Atualizado para uso de chaves nos LEDs)
+******************************************************************************
+- DESCRIÇÃO:
+- - Controle de três LEDs por chaves seletoras/gangorra.
+- - Acionamento independente de dois motores DC por transistores NPN.
+- - Reprodução e pausa de áudio via Bluetooth A2DP.
+*
+- HARDWARE:
+- - ESP32 DevKit V1
+- - Dois motores DC
+- - Dois transistores NPN
+- - LEDs
+- - Chaves e Botões
+****************************************************************************/
+
+#include "AudioTools.h"
+#include "BluetoothA2DPSink.h"
+
+//--- Configuração do áudio Bluetooth ---//
+AnalogAudioStream out;
+BluetoothA2DPSink a2dp_sink(out);
+
+//--- Chaves dos LEDs ---//
+const int chave_01 = 13;
+const int chave_02 = 12;
+const int chave_03 = 14;
+
+//--- Botões dos motores ---//
+const int botao_motor1 = 27;
+const int botao_motor2 = 16;
+
+//--- Botões de áudio ---//
+const int BUTTON_PLAY = 32;
+const int BUTTON_PAUSE = 33;
+
+//--- Pinos dos LEDs ---//
+const int led_verde = 4;
+const int led_vermelho = 5;
+const int led_amarelo = 19;
+
+//--- Pinos dos motores DC ---//
+const int motor_DC1 = 18;
+const int motor_DC2 = 23;
+
+//--- Estados anteriores dos botões de áudio ---//
+int lastPlayState = HIGH;
+int lastPauseState = HIGH;
+
+void setup() {
+
+  //--- Configuração das chaves e botões com pull-up interno ---//
+  pinMode(chave_01, INPUT_PULLUP);
+  pinMode(chave_02, INPUT_PULLUP);
+  pinMode(chave_03, INPUT_PULLUP);
+
+  pinMode(botao_motor1, INPUT_PULLUP);
+  pinMode(botao_motor2, INPUT_PULLUP);
+
+  pinMode(BUTTON_PLAY, INPUT_PULLUP);
+  pinMode(BUTTON_PAUSE, INPUT_PULLUP);
+
+  //--- Configuração dos LEDs ---//
+  pinMode(led_verde, OUTPUT);
+  pinMode(led_vermelho, OUTPUT);
+  pinMode(led_amarelo, OUTPUT);
+
+  //--- Configuração dos motores ---//
+  pinMode(motor_DC1, OUTPUT);
+  pinMode(motor_DC2, OUTPUT);
+
+  digitalWrite(motor_DC1, LOW);
+  digitalWrite(motor_DC2, LOW);
+
+  //--- Inicialização do Bluetooth A2DP ---//
+  a2dp_sink.start("FonoTech");
+}
+
+void loop() {
+
+  //--- Leitura das chaves e botões ---//
+  int estado_chave01 = digitalRead(chave_01);
+  int estado_chave02 = digitalRead(chave_02);
+  int estado_chave03 = digitalRead(chave_03);
+
+  int estado_motor1 = digitalRead(botao_motor1);
+  int estado_motor2 = digitalRead(botao_motor2);
+
+  int playState = digitalRead(BUTTON_PLAY);
+  int pauseState = digitalRead(BUTTON_PAUSE);
+
+  //--- Controle do LED verde via Chave 1 ---//
+  // Se a chave fechar (LOW), acende o LED. Se abrir (HIGH), apaga.
+  if (estado_chave01 == LOW) {
+    digitalWrite(led_verde, HIGH);
+  } else {
+    digitalWrite(led_verde, LOW);
+  }
+
+  //--- Controle do LED vermelho via Chave 2 ---//
+  if (estado_chave02 == LOW) {
+    digitalWrite(led_vermelho, HIGH);
+  } else {
+    digitalWrite(led_vermelho, LOW);
+  }
+
+  //--- Controle do LED amarelo via Chave 3 ---//
+  if (estado_chave03 == LOW) {
+    digitalWrite(led_amarelo, HIGH);
+  } else {
+    digitalWrite(led_amarelo, LOW);
+  }
+
+  //--- Controle do motor 1 (continua por pulso/botão) ---//
+  switch (estado_motor1) {
+    case LOW:
+      digitalWrite(motor_DC1, HIGH);
+      break;
+    case HIGH:
+      digitalWrite(motor_DC1, LOW);
+      break;
+  }
+
+  //--- Controle do motor 2 (continua por pulso/botão) ---//
+  switch (estado_motor2) {
+    case LOW:
+      digitalWrite(motor_DC2, HIGH);
+      break;
+    case HIGH:
+      digitalWrite(motor_DC2, LOW);
+      break;
+  }
+
+  //--- Comando PLAY ---//
+  if (playState == LOW && lastPlayState == HIGH) {
+    a2dp_sink.play();
+  }
+
+  //--- Comando PAUSE ---//
+  if (pauseState == LOW && lastPauseState == HIGH) {
+    a2dp_sink.pause();
+  }
+
+  //--- Atualização dos estados anteriores ---//
+  lastPlayState = playState;
+  lastPauseState = pauseState;
+
+  delay(20);
+}

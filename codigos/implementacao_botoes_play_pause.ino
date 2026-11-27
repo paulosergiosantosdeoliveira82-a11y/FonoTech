@@ -50,8 +50,6 @@ bool lastPauseState = false;
 
 void setup() {
 
-   Serial.begin(115200); // Inicialização a comunicação serial 
-
   // Configura os botões como entrada com resistor de pull-up interno
   pinMode(BUTTON_PLAY, INPUT_PULLUP);
   pinMode(BUTTON_PAUSE, INPUT_PULLUP);
@@ -68,14 +66,16 @@ void loop() {
 
   //--- Esta estrutura condicional detecta quando o estado do botão muda de true para falso ---//
   if (playState == true && lastPlayState == false) {
+   
      a2dp_sink.play(); //--- Esta função envia o comando de play via Bluetooth ---//
-     Serial.println("Play acionado!"); // Verificação no monitor serial se os botões físicos estão funcionando corretamente 
+      
    }
 
   //--- Esta estrutura condicional também detecta quando o estado do botão de pause muda de verdadeiro para falso ---//
   if (pauseState == true && lastPauseState == false) {
+   
     a2dp_sink.pause(); //--- Esta estrutura envia o comando de pause via Bluetooth ---//
-    Serial.println("Pause acionado!");
+   
   }
  //--- Estas estruturas criadas guardam os Estados dos botões para realizarem comparações no próximo loop  ---//
 lastPlayState = playState;
